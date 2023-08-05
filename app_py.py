@@ -11,40 +11,141 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-st.title('Uber pickups in NYC')
+st.title('Amazing Mart Dataset')
+df = pd.read_csv('Order.tsv',sep='\t',header=0)
+df.head()
 
-DATE_COLUMN = 'date/time'
-DATA_URL = ('https://s3-us-west-2.amazonaws.com/'
-            'streamlit-demo-data/uber-raw-data-sep14.csv.gz')
+from google.colab import files
+uploaded = files.upload()
 
-@st.cache_data
-def load_data(nrows):
-    data = pd.read_csv(DATA_URL, nrows=nrows)
-    lowercase = lambda x: str(x).lower()
-    data.rename(lowercase, axis='columns', inplace=True)
-    data[DATE_COLUMN] = pd.to_datetime(data[DATE_COLUMN])
-    return data
+df1 = pd.read_json('Order_breakdown.json')
+df1.head()
 
-data_load_state = st.text('Loading data...')
-data = load_data(10000)
-data_load_state.text("Done! (using st.cache_data)")
+df.columns
 
-if st.checkbox('Show raw data'):
-    st.subheader('Raw data')
-    st.write(data)
+df1.shape
 
-st.subheader('Number of pickups by hour')
-hist_values = np.histogram(data[DATE_COLUMN].dt.hour, bins=24, range=(0,24))[0]
-st.bar_chart(hist_values)
+df.shape
 
-# Some number in the range 0-23
-hour_to_filter = st.slider('hour', 0, 23, 17)
-filtered_data = data[data[DATE_COLUMN].dt.hour == hour_to_filter]
+MD = pd.merge(df,df1 ,how = 'inner' )
+#MD = MART DATA
 
-st.subheader('Map of all pickups at %s:00' % hour_to_filter)
-st.map(filtered_data)
+MD.head()
+
+"""# EDA"""
+
+MD.shape
+
+MD.columns
+
+MD['Customer Name'].value_counts()
+
+MD['Country'].value_counts()
+
+MD['State'].value_counts()
+
+MD['Product Name'].value_counts()
+
+MD['Region'].value_counts()
+
+sns.displot(x=MD['Region'])
+plt.show()
+
+"""# CONCLUSION
+Central region has the highest no.of records while south has the least.
+"""
+
+sns.lineplot(x=MD['Sales'],y=MD['Profit'])
+plt.show()
+
+sns.violinplot(x=MD['Profit'],y=MD['Country'])
+plt.show()
+
+MD.isnull().sum()
+
+"""# There are no null values in the dataset"""
+
+MD.describe()
+
+MD.columns
+
+data= (MD['Discount'],MD['Actual Discount'])
+print(data)
+
+sns.scatterplot(x=MD['Discount'],y=MD['Actual Discount'],color='red')
+plt.show()
+
+MD.head()
+
+encoder = LabelEncoder()
+
+MD['Sub-Category'] = encoder.fit_transform(MD['Sub-Category'])
+MD['Customer Name'] = encoder.fit_transform(MD['Customer Name'])
+MD['Product Name'] = encoder.fit_transform(MD['Product Name'])
+MD['Category'] = encoder.fit_transform(MD['Category'])
+MD['Region'] = encoder.fit_transform(MD['Region'])
+MD['Country'] = encoder.fit_transform(MD['Country'])
+MD['Discount'] = encoder.fit_transform(MD['Discount'])
+MD['Actual Discount'] = encoder.fit_transform(MD['Actual Discount'])
+MD['City'] = encoder.fit_transform(MD['City'])
+MD['Segment'] = encoder.fit_transform(MD['Segment'])
+MD['Ship Date'] = encoder.fit_transform(MD['Ship Date'])
+MD['Ship Mode'] = encoder.fit_transform(MD['Ship Mode'])
+MD['State'] = encoder.fit_transform(MD['State'])
+MD['Order ID'] = encoder.fit_transform(MD['Order ID'])
+MD['Order Date'] = encoder.fit_transform(MD['Order Date'])
+
+MD1 = MD.head()
+
+MD1
 
 
+
+MD.columns
+
+X = MD.drop(columns = 'Sub-Category',axis=1)
+Y = MD['Sub-Category']
+print(X)
+print(Y)
+
+
+
+"""# PREPARING ML MODEL"""
+
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from xgboost import XGBRegressor
+from sklearn import metrics
+
+X_train,X_test,Y_train,Y_test = train_test_split(X,Y,test_size=0.2,random_state=2)
+
+print(X.shape,X_train.shape,X_test.shape)
+
+"""# Model training"""
+
+regressor = XGBRegressor()
+
+regressor.fit(X_train,Y_train)
+
+"""# Evaluvating the model
+
+"""
+
+training_data_prediction = regressor.predict(X_train)
+
+r2_train = metrics.r2_score(Y_train,training_data_prediction)
+
+print('R Squared value =' ,r2_train)
+
+test_data_prediction = regressor.predict(X_test)
+
+r2_test = metrics.r2_score(Y_test,test_data_prediction)
+
+print('R Squared value =',r2_test)
+
+import pickle
+with open('model_pickle','wb') as f:
+     pickle.dump(model,f)
 
 
 
