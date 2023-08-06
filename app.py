@@ -1,39 +1,41 @@
 import streamlit as st
-from PIL import Image
+import pandas as pd
 
-def image_info(image):
-    # Get image size
-    width, height = image.size
-
-    # Get image format
-    img_format = image.format
-
-    # Get image mode
-    img_mode = image.mode
-
-    return width, height, img_format, img_mode
+# Load the Mart Sales dataset
+@st.cache
+def load_data():
+    data = pd.read_csv("mart_sales_dataset.csv")
+    return data
 
 def main():
-    st.title("Image Uploader and Information Viewer")
-
-    # Upload image file
-    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
-
-    if uploaded_file is not None:
-        # Display the uploaded image
-        st.subheader("Uploaded Image:")
-        img = Image.open(uploaded_file)
-        st.image(img, caption="Uploaded Image", use_column_width=True)
-
-        # Get image information
-        width, height, img_format, img_mode = image_info(img)
-
-        # Display image information
-        st.subheader("Image Information:")
-        st.write(f"Width: {width}px")
-        st.write(f"Height: {height}px")
-        st.write(f"Format: {img_format}")
-        st.write(f"Mode: {img_mode}")
-
+    st.title("Mart Sales Data Analysis")
+    
+    # Load the dataset
+    data = load_data()
+    
+    st.write("## Mart Sales Dataset")
+    st.write(data.head())  # Display the first few rows of the dataset
+    
+    # Basic statistics
+    st.write("## Basic Statistics")
+    st.write(data.describe())
+    
+    # Interactive components
+    st.write("## Interactive Components")
+    
+    # Sidebar filters
+    st.sidebar.title("Filters")
+    category = st.sidebar.selectbox("Select Category", data['Category'].unique())
+    filtered_data = data[data['Category'] == category]
+    
+    # Display filtered data
+    st.write(f"Displaying data for Category: {category}")
+    st.write(filtered_data)
+    
+    # Data visualization
+    st.write("## Data Visualization")
+    
+    # You can add plots and charts here using the data
+    
 if __name__ == "__main__":
     main()
