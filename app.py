@@ -6,8 +6,8 @@ import seaborn as sns
 # Load the Mart Sales dataset
 @st.cache
 def load_data():
-    data =  pd.read_csv('Order.tsv',sep='\t',header=0)
-df.head())
+    df =  pd.read_csv('Order.tsv',sep='\t',header=0)
+df.head()
     return data
 
 def main():
