@@ -4,7 +4,7 @@ import pandas as pd
 # Load the Mart Sales dataset
 @st.cache
 def load_data():
-    data = pd.read_csv("mart_sales_dataset.csv")
+    data = pd.read_csv('Order.tsv',sep='\t',header=0)
     return data
 
 def main():
